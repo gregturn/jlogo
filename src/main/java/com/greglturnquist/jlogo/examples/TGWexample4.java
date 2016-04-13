@@ -1,4 +1,6 @@
-package com.greglturnquist.jlogo;
+package com.greglturnquist.jlogo.examples;
+
+import com.greglturnquist.jlogo.TurtleGraphicsWindow;
 
 class TGWexample4 extends TurtleGraphicsWindow
 {

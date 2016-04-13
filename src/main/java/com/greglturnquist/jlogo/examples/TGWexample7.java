@@ -1,6 +1,9 @@
-package com.greglturnquist.jlogo;
+package com.greglturnquist.jlogo.examples;
 
-class TGWexample7 extends TurtleGraphicsWindow
+import com.greglturnquist.jlogo.TGPoint;
+import com.greglturnquist.jlogo.TurtleGraphicsWindow;
+
+public class TGWexample7 extends TurtleGraphicsWindow
 {
    private int[] PASTELS = {WHITE, GRAY, WHEAT, PALEGREEN, LIGHTBLUE, KHAKI, PINK };
 
@@ -25,7 +28,7 @@ class TGWexample7 extends TurtleGraphicsWindow
    }
 
 
-   private void drawCircle( TGPoint centerPos, double radius )
+   private void drawCircle(TGPoint centerPos, double radius )
    {
       penup();
       setpos( centerPos );

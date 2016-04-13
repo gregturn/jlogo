@@ -1,8 +1,5 @@
 package com.greglturnquist.jlogo;
 
-import com.greglturnquist.jlogo.PixelRectangle;
-import com.greglturnquist.jlogo.SpritePixels;
-
 /**
  * This class provides the turtle's appearance, the array of pixels
  * that make up its image.  In this case, the image is supplied by the
