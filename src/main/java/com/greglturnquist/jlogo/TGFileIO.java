@@ -134,6 +134,7 @@ class DIBHeader
  * Utility methods for getting stuff from files on the local computer.
  * <p>
  * @author Guy Haas
+ * @author Greg Turnquist
  */
 public class TGFileIO
 {

@@ -13,6 +13,7 @@ import org.springframework.core.io.ResourceLoader;
  * Wrapper class which provides the TurtleGraphics support from the TG Logo programmng
  * environment to the world of programming in Java.
  *
+ * @author Guy Haas
  * @author Greg Turnquist
  */
 public class TurtleGraphicsWindow extends Frame
