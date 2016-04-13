@@ -3,10 +3,17 @@ package com.greglturnquist.jlogo;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Optional;
+
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 /**
  * Wrapper class which provides the TurtleGraphics support from the TG Logo programmng
  * environment to the world of programming in Java.
+ *
+ * @author Greg Turnquist
  */
 public class TurtleGraphicsWindow extends Frame
 		implements TGKeyHandler, TGMouseHandler, WindowListener {
@@ -456,6 +463,8 @@ public class TurtleGraphicsWindow extends Frame
 		userSuppliedImages = new SpritePixels[NUM_USER_SUPPLIED_SHAPES];
 	}
 
+   DefaultResourceLoader loader;
+
 	//
 	// Constructors
 	// ------------
@@ -468,6 +477,7 @@ public class TurtleGraphicsWindow extends Frame
 	 */
 	public TurtleGraphicsWindow() {
 		this(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+       this.loader = new DefaultResourceLoader();
 	}
 
 	/**
@@ -975,11 +985,21 @@ public class TurtleGraphicsWindow extends Frame
 	 * @see #clean
 	 */
 	public boolean loadpicture(String fileName) {
-		Image pictureImage = TGFileIO.getImage(fileName);
-		if (pictureImage == null)
-			return false;
-		canvas.loadPicture(pictureImage);
-		return true;
+		Resource pictureResource = filenameToResource(loader, fileName);
+
+		return Optional.ofNullable(TGFileIO.getImage(pictureResource))
+			.map(pictureImage -> {
+				canvas.loadPicture(pictureImage);
+				return true;
+			})
+			.orElse(false);
+	}
+
+	public static Resource filenameToResource(ResourceLoader loader, String filename) {
+
+		return Optional.of(filename.startsWith("classpath:"))
+			.map(o -> loader.getResource(filename))
+			.orElse(loader.getResource("classpath:" + filename));
 	}
 
 	/**
@@ -993,7 +1013,7 @@ public class TurtleGraphicsWindow extends Frame
 	 * @see #setshape
 	 */
 	public boolean loadshape(String fileName, int shapeNum) {
-		PixelRectangle pixRect = TGFileIO.getPixRect(fileName);
+		PixelRectangle pixRect = TGFileIO.getPixRect(filenameToResource(loader, fileName));
 		if (pixRect == null)
 			return false;
 		int shapeIdx = shapeNum - FIRST_USER_SUPPLIED_SHAPE;

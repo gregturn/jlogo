@@ -1,16 +1,21 @@
 package com.greglturnquist.jlogo;
 
-import java.awt.Image;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import java.security.AccessControlException;
+
 import javax.imageio.ImageIO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.core.io.Resource;
 
 
 /*
@@ -133,6 +138,8 @@ class DIBHeader
 public class TGFileIO
 {
 
+	public static final Logger log = LoggerFactory.getLogger(TGFileIO.class);
+
    // Symbolic Constants
    // -------- ---------
 
@@ -148,7 +155,7 @@ public class TGFileIO
    //
    // Class Variables
    // ----- ---------
- 
+
 
    /*
     * The directory from which the application was started.
@@ -164,13 +171,13 @@ public class TGFileIO
     */
    private static String currentDirectory;
 
- 
+
    /*
     * String array of picture files available.
     */
    private static String[] pictFiles;
 
- 
+
    /*
     * Root directories for system TG application is running on.
     */
@@ -181,21 +188,6 @@ public class TGFileIO
    //
    // Support methods for this class
    // ------- ------- --- ---- -----
-
-
-   /*
-    * Return a file name with a default extension appended
-    * if the provided fileName does not have an extension.
-    */
-   private static String addDefaultExtension( String fileName, String defaultSuffix )
-   {
-      int fromIdx = fileName.lastIndexOf( File.separatorChar );
-      if ( fromIdx == -1 )
-         fromIdx = 0;
-      if ( fileName.indexOf(".", fromIdx) < 0 )
-         fileName = fileName + defaultSuffix;
-      return fileName;
-   }
 
 
    /*
@@ -413,8 +405,9 @@ public class TGFileIO
    /**
     * Given a file name, read the picture file in and
     * convert the contents into an Image.
+    * @param fileName
     */
-   public static Image getImage( String fileName )
+   public static Image getImage(Resource fileName )
    {
       PixelRectangle pixRect = getPixRect( fileName );
       if ( pixRect == null )
@@ -426,60 +419,24 @@ public class TGFileIO
    /**
     * Given a file name (of a picture file), read it
     * in and convert its contents into a PixelRectangle.
-    */
-   public static PixelRectangle getPixRect( String fileName )
-   {
-      String me = ".getPixRect(): ";
-      if ( fileName == null || fileName.length() == 0 )
-         return null;
-      fileName = addDefaultExtension( fileName, ".bmp" );
-      if ( ! fileName.endsWith(".bmp") )
-      {
-         BufferedImage bufImg = null;
-         File file = new File( getCurrentDirectory(), fileName );
-         try { bufImg = ImageIO.read( file ); }
-         catch ( IOException ioe )
-         {
-            sysErr( me + "'" + fileName + Q_NOT_PICT_FILE );
-            return null;
-         }
-         return getPixRect( bufImg );
-      }
-      // .bmp file
-      PixelRectangle pixRect = null;
-      File file = null;
-      if ( isAbsolutePath(fileName) )
-         file = new File( fileName );
-      else
-         file = new File( getCurrentDirectory(), fileName );
-      if ( file == null )
-         return null;
-      InputStream is = null;
-      try
-      { is = new FileInputStream( file ); }
-      catch ( AccessControlException ace )
-      {
-         sysErr( me + "FileInputStream() threw AccessControlException '" + ace + "'" );
-         return null;
-      }
-      catch (FileNotFoundException fnf )
-      { return null; }
-      if ( is == null )
-         return null;
-      try
-      { pixRect = bmpFileToPixRect( is ); }
-      catch ( IOException ioe )
-      {
-         sysErr( me + "getPixRect() threw IOException '" + ioe + "'" );
-         return null;
-      }
-      try
-      { is.close(); }
-      catch ( IOException ioe )
-      { sysErr( me + "close() threw IOException '" + ioe + "'" ); }
-      return pixRect;
-   }
+	* @param fileName
+	*/
+	public static PixelRectangle getPixRect(Resource fileName) {
 
+		if (fileName == null || !fileName.exists())
+			return null;
+
+		try {
+			if (!fileName.getFilename().endsWith(".bmp")) {
+				return getPixRect(ImageIO.read(fileName.getInputStream()));
+			} else {
+				return bmpFileToPixRect(fileName.getInputStream());
+			}
+		} catch (IOException e) {
+			log.error(e.toString());
+			return null;
+		}
+	}
 
    /**
     * Read the specified text file into an array of Strings, one for
@@ -580,7 +537,7 @@ public class TGFileIO
 
 
    /**
-    * Set the current directory. 
+    * Set the current directory.
     */
    public static void setCurrentDirectory( String path )
    {
